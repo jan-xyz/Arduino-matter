@@ -7,3 +7,9 @@ Testbed for my arduino explorations for matter.
 - Sparkfun Thing Plus Matter
 - Sparkfun Ambient Light Sensor
 - A button
+
+### TODO
+
+- Reduce power consumption
+- add moisture sensor
+- add re-chargeable battery
