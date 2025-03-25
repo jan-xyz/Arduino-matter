@@ -40,6 +40,8 @@ void setup() {
   pinMode(soilPower, OUTPUT);
   digitalWrite(soilPower, LOW);
 
+  // Turn on LED during connection phase
+  digitalWrite(LED_BUILTIN, HIGH);
 
   // Check commissioning
   if (!Matter.isDeviceCommissioned()) {
@@ -69,39 +71,33 @@ void setup() {
 
   // Indicate that the setup is done
   Serial.println("Device is now online");
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 // the loop function runs over and over again forever
 void loop() {
+  // indicate measuring
+  digitalWrite(LED_BUILTIN, HIGH);
+
   // Handle illuminance values
-  static float current_illuminance_lux = 0.0f;
-  static uint32_t last_action = 0;
-  // Wait 10 seconds
-  if ((last_action + 30000) < millis()) {
-    last_action = millis();
-    float analogLight = analogRead(ambientLightPin);
-    current_illuminance_lux = analogToLux(analogLight);
-    // Publish the illuminance value
-    matter_illuminance_sensor.set_measured_value_lux(current_illuminance_lux);
-    Serial.printf("Current light level: %.02f lx\n", current_illuminance_lux);
-  }
+  float analogLight = analogRead(ambientLightPin);
+  float current_illuminance_lux = analogToLux(analogLight);
+  matter_illuminance_sensor.set_measured_value_lux(current_illuminance_lux);
 
   // Handle humidity values
-  static float current_humidity = 0.0f;
-  static uint32_t last_action_humidity = 0;
-  // Wait 10 seconds
-  if ((last_action_humidity + 30000) < millis()) {
-    last_action_humidity = millis();
-    float analog_humidity = readSoil();
-    current_humidity = analogToPercent(analog_humidity);
-    // Publish the humidity value
-    matter_humidity_sensor.set_measured_value(current_humidity);
-    Serial.printf("Current humidity: %.01f%%\n", current_humidity);
-  }
+  float analog_humidity = readSoil();
+  float current_humidity_percent = analogToPercent(analog_humidity);
+  matter_humidity_sensor.set_measured_value(current_humidity_percent);
+
+  // Serial Plotter
+  Serial.printf("lux:%.01f,humidity:%.01f\n", current_illuminance_lux, current_humidity_percent);
 
   // Handle the decommissioning process if requested
   decommission_handler();
+
+  // prepare for sleep
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(30000);
 }
 
 int analogToPercent(int analogValue) {
@@ -110,11 +106,11 @@ int analogToPercent(int analogValue) {
 }
 
 int readSoil() {
-  digitalWrite(soilPower, HIGH);  //turn D7 "On"
-  delay(10);                      //wait 10 milliseconds
-  float val = analogRead(soilPin);      //Read the SIG value form sensor
-  digitalWrite(soilPower, LOW);   //turn D7 "Off"
-  return val;                     //send current moisture value
+  digitalWrite(soilPower, HIGH);    //turn D7 "On"
+  delay(10);                        //wait 10 milliseconds
+  float val = analogRead(soilPin);  //Read the SIG value form sensor
+  digitalWrite(soilPower, LOW);     //turn D7 "Off"
+  return val;                       //send current moisture value
 }
 
 int analogToLux(int analogValue) {

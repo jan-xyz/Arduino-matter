@@ -11,5 +11,4 @@ Testbed for my arduino explorations for matter.
 
 ### TODO
 
-- Reduce power consumption - https://github.com/SiliconLabs/arduino/blob/main/libraries/Matter/examples/matter_lightbulb_callback/matter_lightbulb_callback.ino
 - add re-chargeable battery
